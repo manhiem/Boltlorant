@@ -13,6 +13,7 @@ public class Weapon : MonoBehaviour
     protected bool _isReloading = false;
     protected PlayerWeapons _playerWeapons;
     protected PlayerMotor _playerMotor;
+    protected PlayerCallback _playerCallback;
 
     protected int _fireFrame = 0;
     private Coroutine _reloadCrt = null;
@@ -40,6 +41,7 @@ public class Weapon : MonoBehaviour
     {
         _playerWeapons = pw;
         _playerMotor = pw.GetComponent<PlayerMotor>();
+        _playerCallback = pw.GetComponent<PlayerCallback>();
         _camera = _playerWeapons.Cam.transform;
 
         if (!_playerMotor.entity.HasControl)
@@ -75,7 +77,12 @@ public class Weapon : MonoBehaviour
             {
                 int dmg = 0;
                 _fireFrame = BoltNetwork.ServerFrame;
-                //TODO Fire effect
+
+                if (_playerCallback.entity.IsOwner)
+                    _playerCallback.FireEffect(WeaponStat.precision, seed);
+
+                if (_playerCallback.entity.HasControl)
+                    FireEffect(seed, WeaponStat.precision);
 
                 _currentAmmo -= _weaponStat.ammoPerShot;
                 Random.InitState(seed);
@@ -153,21 +160,21 @@ public class Weapon : MonoBehaviour
             }
         }
     }
-}
 
-protected void _Reload()
-{
-    _reloadCrt = StartCoroutine(Reloading());
-}
 
-IEnumerator Reloading()
-{
-    _isReloading = true;
-    yield return new WaitForSeconds(_weaponStat.reloadTime);
-    _currentTotalAmmo += _currentAmmo;
-    int _ammo = Mathf.Min(_currentTotalAmmo, _weaponStat.magazine);
-    _currentTotalAmmo -= _ammo;
-    _currentAmmo = _ammo;
-    _isReloading = false;
-}
+    protected void _Reload()
+    {
+        _reloadCrt = StartCoroutine(Reloading());
+    }
+
+    IEnumerator Reloading()
+    {
+        _isReloading = true;
+        yield return new WaitForSeconds(_weaponStat.reloadTime);
+        _currentTotalAmmo += _currentAmmo;
+        int _ammo = Mathf.Min(_currentTotalAmmo, _weaponStat.magazine);
+        _currentTotalAmmo -= _ammo;
+        _currentAmmo = _ammo;
+        _isReloading = false;
+    }
 }

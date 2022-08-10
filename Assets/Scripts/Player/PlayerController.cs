@@ -16,7 +16,6 @@ public class PlayerController : EntityBehaviour<IPhysicState>
     private bool _fire;
     private bool _aiming;
     private bool _reload;
-    int _seed = 0;
 
     private bool _hasControl = false;
 
@@ -66,8 +65,6 @@ public class PlayerController : EntityBehaviour<IPhysicState>
         _jump = Input.GetKey(KeyCode.Space);
 
         _fire = Input.GetMouseButton(0);
-        if (_fire)
-            _seed = Random.Range(0, 1023);
         _aiming = Input.GetMouseButton(1);
         _reload = Input.GetKey(KeyCode.R);
 
@@ -96,12 +93,11 @@ public class PlayerController : EntityBehaviour<IPhysicState>
         input.Fire = _fire;
         input.Scope = _aiming;
         input.Reload = _reload;
-        input.Seed = _seed;
 
         entity.QueueInput(input);
 
         _playerMotor.ExecuteCommand(_forward, _backward, _left, _right, _jump, _yaw, _pitch);
-        _playerWeapons.ExecuteCommand(_fire, _aiming, _reload, _seed);
+        _playerWeapons.ExecuteCommand(_fire, _aiming, _reload, BoltNetwork.ServerFrame % 1024);
     }
 
     /// <summary>
@@ -136,7 +132,7 @@ public class PlayerController : EntityBehaviour<IPhysicState>
                 cmd.Input.Fire,
                 cmd.Input.Scope,
                 cmd.Input.Reload,
-                cmd.Input.Seed);
+                cmd.ServerFrame % 1024);
             }
 
             cmd.Result.Position = motorState.position;

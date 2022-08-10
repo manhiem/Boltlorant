@@ -87,11 +87,20 @@ public class PlayerMotor : EntityBehaviour<IPlayerState>
         _cam.transform.localEulerAngles = new Vector3(pitch, 0f, 0f);
         transform.rotation = Quaternion.Euler(0, yaw, 0);
 
+        if (entity.IsOwner)
+            state.Pitch = (int)pitch;
+
         State stateMotor = new State();
         stateMotor.position = transform.position;
         stateMotor.rotation = yaw;
 
         return stateMotor;
+    }
+
+    public void SetPitch()
+    {
+        if (!entity.IsControllerOrOwner)
+            _cam.transform.localEulerAngles = new Vector3(state.Pitch, 0f, 0f);
     }
 
     /// <summary>
