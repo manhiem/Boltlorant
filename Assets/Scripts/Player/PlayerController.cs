@@ -16,10 +16,13 @@ public class PlayerController : EntityBehaviour<IPhysicState>
     private bool _fire;
     private bool _aiming;
     private bool _reload;
+    private int _wheel = 0;
 
     private bool _hasControl = false;
 
     private float _mouseSensitivity = 5f;
+
+    public int Wheel { get => _wheel; set => _wheel = value; }
 
     public void Awake()
     {
@@ -72,6 +75,11 @@ public class PlayerController : EntityBehaviour<IPhysicState>
         _yaw %= 360f;
         _pitch += -Input.GetAxisRaw("Mouse Y") * _mouseSensitivity;
         _pitch = Mathf.Clamp(_pitch, -85, 85);
+
+        if (Input.GetAxis("Mouse ScrollWheel") != 0)
+        {
+            _wheel = _playerWeapons.CalculateIndex(Input.GetAxis("Mouse ScrollWheel"));
+        }
     }
 
     /// <summary>
@@ -93,11 +101,12 @@ public class PlayerController : EntityBehaviour<IPhysicState>
         input.Fire = _fire;
         input.Scope = _aiming;
         input.Reload = _reload;
+        input.Wheel = _wheel;
 
         entity.QueueInput(input);
 
         _playerMotor.ExecuteCommand(_forward, _backward, _left, _right, _jump, _yaw, _pitch);
-        _playerWeapons.ExecuteCommand(_fire, _aiming, _reload, BoltNetwork.ServerFrame % 1024);
+        _playerWeapons.ExecuteCommand(_fire, _aiming, _reload, _wheel, BoltNetwork.ServerFrame % 1024);
     }
 
     /// <summary>
@@ -132,6 +141,7 @@ public class PlayerController : EntityBehaviour<IPhysicState>
                 cmd.Input.Fire,
                 cmd.Input.Scope,
                 cmd.Input.Reload,
+                cmd.Input.Wheel,
                 cmd.ServerFrame % 1024);
             }
 

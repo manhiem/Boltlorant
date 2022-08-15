@@ -5,22 +5,40 @@ public class PlayerCallback : EntityEventListener<IPlayerState>
 {
     private PlayerMotor _playerMotor;
     private PlayerWeapons _playerWeapons;
+    private PlayerController _playerController;
 
     private void Awake()
     {
         _playerMotor = GetComponent<PlayerMotor>();
         _playerWeapons = GetComponent<PlayerWeapons>();
+        _playerController = GetComponent<PlayerController>();
     }
 
     public override void Attached()
     {
         state.AddCallback("LifePoints", UpdatePlayerLife);
         state.AddCallback("Pitch", _playerMotor.SetPitch);
+        state.AddCallback("WeaponIndex", UpdateWeaponIndex);
+        state.AddCallback("Weapons[].CurrentAmmo", UpdateWeaponAmmo);
+        state.AddCallback("Weapons[].TotalAmmo", UpdateWeaponAmmo);
 
         if (entity.IsOwner)
         {
             state.LifePoints = _playerMotor.TotalLife;
         }
+    }
+
+    public void UpdateWeaponAmmo(IState state, string propertyPath, ArrayIndices arrayIndices)
+    {
+        int index = arrayIndices[0];
+        IPlayerState s = (IPlayerState)state;
+        _playerWeapons.InitAmmo(index, s.Weapons[index].CurrentAmmo, s.Weapons[index].TotalAmmo);
+    }
+
+    public void UpdateWeaponIndex()
+    {
+        _playerController.Wheel = state.WeaponIndex;
+        _playerWeapons.SetWeapon(state.WeaponIndex);
     }
 
     public void FireEffect(float precision, int seed)

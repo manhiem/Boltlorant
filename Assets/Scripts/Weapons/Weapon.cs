@@ -34,8 +34,27 @@ public class Weapon : MonoBehaviour
     }
 
     public WeaponStats WeaponStat { get => _weaponStat; }
-    public int CurrentAmmo { get => _currentAmmo; }
-    public int TotalAmmo { get => _currentTotalAmmo; }
+    public int CurrentAmmo
+    {
+        get => _currentAmmo;
+        set
+        {
+            if (_playerMotor.entity.IsOwner)
+                _playerMotor.state.Weapons[_playerWeapons.WeaponIndex].CurrentAmmo = value;
+            _currentAmmo = value;
+        }
+    }
+
+    public int TotalAmmo
+    {
+        get => _currentTotalAmmo;
+        set
+        {
+            if (_playerMotor.entity.IsOwner)
+                _playerMotor.state.Weapons[_playerWeapons.WeaponIndex].TotalAmmo = value;
+            _currentTotalAmmo = value;
+        }
+    }
 
     public virtual void Init(PlayerWeapons pw)
     {
@@ -49,6 +68,32 @@ public class Weapon : MonoBehaviour
 
         _currentAmmo = _weaponStat.magazine;
         _currentTotalAmmo = _weaponStat.totalMagazine;
+    }
+
+    private void OnEnable()
+    {
+        if (_playerWeapons)
+        {
+            if (_playerWeapons.entity.IsControllerOrOwner)
+            {
+                if (_currentAmmo == 0)
+                    _reloadCrt = StartCoroutine(Reloading());
+            }
+
+            if (_playerWeapons.entity.HasControl)
+            {
+                GUI_Controller.Current.UpdateAmmo(_currentAmmo, _currentTotalAmmo);
+            }
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_isReloading)
+        {
+            _isReloading = false;
+            StopCoroutine(_reloadCrt);
+        }
     }
 
     public virtual void ExecuteCommand(bool fire, bool aiming, bool reload, int seed)
@@ -159,6 +204,12 @@ public class Weapon : MonoBehaviour
                 trail.SetPosition(1, r.direction * _weaponStat.maxRange + _camera.position);
             }
         }
+    }
+
+    public virtual void InitAmmo(int current, int total)
+    {
+        _currentAmmo = current;
+        _currentTotalAmmo = total;
     }
 
 

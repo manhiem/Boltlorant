@@ -23,6 +23,9 @@ public class GUI_Controller : MonoBehaviour
     [SerializeField]
     private UI_HealthBar _healthBar = null;
 
+    [SerializeField]
+    private UI_AmmoPanel _ammoPanel = null;
+
     private void Start()
     {
         Show(false);
@@ -31,10 +34,18 @@ public class GUI_Controller : MonoBehaviour
     public void Show(bool active)
     {
         _healthBar.gameObject.SetActive(active);
+        _ammoPanel.gameObject.SetActive(active);
     }
 
     public void UpdateLife(int current, int total)
     {
         _healthBar.UpdateLife(current, total);
     }
+
+    public void UpdateAmmo(int current, int total)
+    {
+        _ammoPanel.UpdateAmmo(current, total);
+    }
+
+
 }
